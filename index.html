@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GAMERYT Weather: A feature-rich, responsive weather application providing detailed forecasts, and daylight information.">
+    <title>GAMERYT Weather</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Styles & Responsive Design */
+        :root {
+            --primary-bg: #ffffff;
+            --secondary-bg: #f8fafc;
+            --tertiary-bg: #f1f5f9;
+            --primary-text: #0f172a;
+            --secondary-text: #64748b;
+            --accent-color: #8b5cf6;
+            --accent-color-hover: #7c3aed;
+            --border-color: #e2e8f0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        html.dark {
+            --primary-bg: #0f172a;
+            --secondary-bg: #1e293b;
+            --tertiary-bg: #334155;
+            --primary-text: #f8fafc;
+            --secondary-text: #94a3b8;
+            --border-color: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.25);
+        }
+
+        html.purple {
+            --primary-bg: #1e1b4b;
+            --secondary-bg: #312e81;
+            --tertiary-bg: #4338ca;
+            --primary-text: #e0e7ff;
+            --secondary-text: #c7d2fe;
+            --accent-color: #a78bfa;
+            --accent-color-hover: #c4b5fd;
+            --border-color: #4f46e5;
+            --shadow-color: rgba(0, 0, 0, 0.25);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--secondary-bg);
+            color: var(--primary-text);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            grid-template-rows: auto 1fr auto;
+            grid-template-areas:
+                "sidebar topbar topbar"
+                "sidebar content right"
+                "sidebar footer footer";
+            min-height: 100vh;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        .sidebar { grid-area: sidebar; z-index: 50; }
+        .topbar { grid-area: topbar; }
+        .main-content { grid-area: content; }
+        .right-content { grid-area: right; }
+        .footer { grid-area: footer; }
+
+        .btn-rounded { border-radius: 30px !important; }
+
+        /* Custom Toast */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast {
+            background-color: var(--primary-bg);
+            color: var(--primary-text);
+            padding: 12px 20px;
+            border-radius: 30px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s, transform 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show { opacity: 1; transform: translateY(0); }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 49; /* Below sidebar */
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.open { display: block; opacity: 1; }
+
+        /* Responsive Styles */
+        @media (max-width: 1190px) {
+            .main-container { grid-template-columns: 80px 1fr 320px; }
+            .sidebar-text, .sidebar-logo-text { display: none; }
+            .sidebar-header, .sidebar-location-item { justify-content: center; }
+            .sidebar-toggle-btn { display: flex !important; }
+            .sidebar.is-overlay {
+                position: fixed;
+                left: 0;
+                width: 280px;
+                box-shadow: 0 0 20px var(--shadow-color);
+            }
+            .sidebar.is-overlay .sidebar-text, .sidebar.is-overlay .sidebar-logo-text { display: inline; }
+            .sidebar.is-overlay .sidebar-header, .sidebar.is-overlay .sidebar-location-item { justify-content: flex-start; }
+        }
+
+        @media (max-width: 992px) {
+            .main-container {
+                grid-template-columns: 80px 1fr;
+                grid-template-areas:
+                    "sidebar topbar"
+                    "sidebar content"
+                    "sidebar right"
+                    "sidebar footer";
+            }
+            .right-content { 
+                padding-left: 1.5rem; 
+                border-left: none;
+                border-top: 1px solid var(--border-color);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .mobile-search-bar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 64px;
+                background-color: var(--primary-bg);
+                z-index: 110;
+                display: none;
+                align-items: center;
+                padding: 0 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            body { overflow-y: auto; }
+            .main-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto auto; /* Add row for right content */
+                height: auto;
+                grid-template-areas:
+                    "topbar"
+                    "content"
+                    "right"
+                    "footer";
+            }
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100%;
+                transition: left 0.3s ease;
+                width: 280px;
+            }
+            .sidebar.open { left: 0; }
+            .menu-icon-btn-mobile { display: flex !important; }
+            .sidebar-toggle-btn { display: none !important; }
+            .sidebar .sidebar-text, .sidebar .sidebar-logo-text { display: inline; }
+            .sidebar .sidebar-header, .sidebar .sidebar-location-item { justify-content: flex-start; }
+        }
+        @media (max-width: 430px) {
+              .topbar-search-container { display: none; }
+            .search-icon-btn { display: flex !important; }
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+    <div id="toast-container"></div>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar bg-[var(--primary-bg)] p-4 flex flex-col h-full border-r border-[var(--border-color)] transition-all duration-300">
+            <div class="sidebar-header flex items-center gap-3 mb-8 px-2">
+                <div id="weather-logo-icon"></div>
+                <span class="sidebar-logo-text text-xl font-bold">Weather</span>
+            </div>
+
+            <button id="my-location-btn" class="btn-rounded w-full bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-semibold py-3 px-4 flex items-center justify-center gap-2 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span class="sidebar-text" data-translate="my_location">My Location</span>
+            </button>
+
+            <div class="mt-6 flex-grow overflow-y-auto">
+                <h3 class="sidebar-text text-sm font-semibold text-[var(--secondary-text)] uppercase tracking-wider px-2 mb-2" data-translate="locations">Locations</h3>
+                <div id="locations-list" class="space-y-2">
+                    <!-- Saved locations will be injected here -->
+                </div>
+            </div>
+        </aside>
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+        <!-- Topbar -->
+        <header class="topbar p-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button id="sidebar-toggle-btn" class="sidebar-toggle-btn p-2 rounded-full hover:bg-[var(--tertiary-bg)] hidden">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <button id="menu-icon-btn-mobile" class="menu-icon-btn-mobile p-2 rounded-full hover:bg-[var(--tertiary-bg)] hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <div class="topbar-search-container relative w-full max-w-[850px]" style="max-width: 850px !important; min-width: 0 !important; width: 100% !important;">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-[var(--secondary-text)]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
+                    </div>
+                    <input id="search-input" type="text" placeholder="Search for a city..." class="w-full bg-[var(--primary-bg)] border border-[var(--border-color)] text-[var(--primary-text)] rounded-full py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] transition-shadow">
+                    <div id="search-results" class="absolute mt-2 w-full bg-[var(--primary-bg)] rounded-lg shadow-lg z-20 hidden overflow-hidden border border-[var(--border-color)]"></div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="search-icon-btn" class="search-icon-btn p-3 rounded-full hover:bg-[var(--tertiary-bg)] hidden">
+                    <svg class="h-6 w-6 text-[var(--primary-text)]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
+                </button>
+                <button id="help-btn" class="p-3 rounded-full hover:bg-[var(--tertiary-bg)] bg-[var(--primary-bg)]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </button>
+                <button id="settings-btn" class="p-3 rounded-full hover:bg-[var(--tertiary-bg)] bg-[var(--primary-bg)]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </button>
+                <div class="relative">
+                    <button id="apps-btn" class="p-3 rounded-full hover:bg-[var(--tertiary-bg)] hidden sm:block bg-[var(--primary-bg)]">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 8h-2v-2h2v2zm0 4h-2v-2h2v2zm0 4h-2v-2h2v2zm4-8h-2v-2h2v2zm0 4h-2v-2h2v2zm0 4h-2v-2h2v2zm4-8h-2v-2h2v2zm0 4h-2v-2h2v2zm0 4h-2v-2h2v2zm4-8h-2v-2h2v2zm0 4h-2v-2h2v2zm0 4h-2v-2h2v2zm4-8h-2v-2h2v2zm0 4h-2v-2h2v2zm0 4h-2v-2h2v2z"/></svg>
+                    </button>
+                    <div id="apps-wrapper" class="absolute right-0 mt-2 w-72 bg-[var(--primary-bg)] rounded-lg shadow-lg z-20 hidden border border-[var(--border-color)] p-2" aria-label="GAMERYT Apps Dropdown">
+                        <a href="https://gamerytdeveloper.github.io/GAMERYT-Calculator/app/app.html" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-[var(--primary-text)] hover:bg-[var(--tertiary-bg)] rounded-md">GAMERYT Calculator</a>
+                        <a href="https://gamerytdeveloper.github.io/GAMERYT-Docs/index.html" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-[var(--primary-text)] hover:bg-[var(--tertiary-bg)] rounded-md">GAMERYT Docs</a>
+                        <a href="https://gamerytdeveloper.github.io/GAMERYT-Calendar/" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-[var(--primary-text)] hover:bg-[var(--tertiary-bg)] rounded-md">GAMERYT Calendar</a>
+                        <a href="https://gamerytdeveloper.github.io/GAMERYT-Translator/" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-[var(--primary-text)] hover:bg-[var(--tertiary-bg)] rounded-md">GAMERYT Translator</a>
+                        <a href="https://gamerytdeveloper.github.io/GAMERYT-Tetris/" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-[var(--primary-text)] hover:bg-[var(--tertiary-bg)] rounded-md">GAMERYT Tetris</a>
+                        <a href="https://gamerytdeveloper.github.io/GAMERYT-Tasks/" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-[var(--primary-text)] hover:bg-[var(--tertiary-bg)] rounded-md">GAMERYT Tasks</a>
+                        <a href="https://gamerytdeveloper.github.io/GAMERYT-Notes/" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-[var(--primary-text)] hover:bg-[var(--tertiary-bg)] rounded-md">GAMERYT Notes</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content p-6 overflow-y-auto">
+            <!-- Current Weather Header -->
+            <div class="flex flex-col sm:flex-row justify-between items-start mb-6">
+                <div>
+                    <h1 id="location-name" class="text-xl sm:text-3xl font-bold">--</h1>
+                    <p id="current-time" class="text-[var(--secondary-text)]">--</p>
+                    <p id="last-updated" class="text-xs text-[var(--secondary-text)]" data-translate="last_updated">Last updated: --</p>
+                </div>
+                <div class="text-left sm:text-right mt-4 sm:mt-0">
+                    <div class="flex items-center gap-4">
+                        <div id="current-weather-icon" class="w-20 h-20"></div>
+                        <div>
+                            <p id="current-temp" class="text-2xl md:text-6xl font-bold">--</p>
+                            <p id="current-description" class="text-[var(--secondary-text)] capitalize">--</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Hourly Forecast -->
+            <div class="bg-[var(--primary-bg)] p-4 rounded-lg shadow-sm border border-[var(--border-color)] mb-6">
+                <h2 class="font-bold mb-4" data-translate="today_forecast">Today's Forecast</h2>
+                <div id="hourly-forecast-container" class="flex overflow-x-auto space-x-4 pb-2">
+                    <!-- Hourly forecast items injected here -->
+                </div>
+            </div>
+
+            <!-- 16 Day Forecast -->
+            <div class="bg-[var(--primary-bg)] p-4 rounded-lg shadow-sm border border-[var(--border-color)] mb-6">
+                <h2 class="font-bold mb-4" data-translate="16_day_forecast">16-Day Forecast</h2>
+                <div id="forecast-container" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 gap-4">
+                    <!-- Forecast items injected here -->
+                </div>
+            </div>
+
+            <!-- Detailed Info Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Details injected here -->
+            </div>
+        </main>
+
+        <!-- Right Content -->
+        <aside class="right-content p-6 overflow-y-auto border-l border-[var(--border-color)] bg-[var(--primary-bg)]">
+            <!-- Daylight -->
+            <div>
+                <h2 class="font-bold mb-4" data-translate="daylight">Daylight</h2>
+                <div class="space-y-4" id="daylight-container">
+                    <!-- Daylight info injected here -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Footer -->
+        <footer class="footer p-4 text-center text-sm text-[var(--secondary-text)] border-t border-[var(--border-color)]">
+            Made by GAMERYT Developer | Weather data by Open-Meteo | Important: Weather data could be wrong sometimes.
+        </footer>
+    </div>
+
+    <!-- Mobile Search Bar -->
+    <div id="mobile-search-bar" class="mobile-search-bar">
+        <button id="mobile-search-back" class="p-2 rounded-full hover:bg-[var(--tertiary-bg)] mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <div class="relative flex-grow">
+            <input id="mobile-search-input" type="text" placeholder="Search for a city..." class="w-full bg-[var(--tertiary-bg)] border border-[var(--border-color)] text-[var(--primary-text)] rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]">
+            <div id="mobile-search-results" class="absolute mt-2 w-full bg-[var(--primary-bg)] rounded-lg shadow-lg z-20 hidden overflow-hidden border border-[var(--border-color)]"></div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden"></div>
+    
+    <!-- Help Modal -->
+    <div id="help-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--primary-bg)] p-8 rounded-lg shadow-lg z-[60] w-full max-w-lg hidden">
+        <h2 class="text-2xl font-bold mb-4" data-translate="help_title">How to Use GAMERYT Weather</h2>
+        <p class="mb-4 text-[var(--secondary-text)]" data-translate="help_p1">
+            Welcome! Use the search bar to find any city. Click the "My Location" button to get weather for your current position. Saved locations appear on the left for quick access.
+        </p>
+        <p class="mb-4 text-[var(--secondary-text)]" data-translate="help_p2">
+            Click the settings icon to change the theme, language, and temperature units. The apps icon provides quick links to other GAMERYT applications.
+        </p>
+        <button id="weather-codes-btn" class="btn-rounded mt-2 w-full border border-[var(--accent-color)] text-[var(--accent-color)] font-semibold py-2 px-4 transition-colors hover:bg-[var(--accent-color)] hover:text-white" data-translate="weather_codes_list">Weather Codes List</button>
+        <button id="close-help-modal" class="btn-rounded mt-4 w-full bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-semibold py-2 px-4 transition-colors" data-translate="got_it">Got it!</button>
+    </div>
+
+    <!-- Weather Codes Modal -->
+    <div id="weather-codes-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--primary-bg)] p-8 rounded-lg shadow-lg z-[60] w-full max-w-2xl hidden">
+        <h2 class="text-2xl font-bold mb-4" data-translate="weather_codes_list">Weather Codes List</h2>
+        <div id="weather-codes-container" class="max-h-[60vh] overflow-y-auto pr-4 space-y-2">
+            <!-- Codes will be injected here -->
+        </div>
+        <button id="close-codes-modal" class="btn-rounded mt-6 w-full bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-semibold py-2 px-4 transition-colors" data-translate="close">Close</button>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--primary-bg)] p-8 rounded-lg shadow-lg z-[60] w-full max-w-md hidden">
+        <h2 class="text-2xl font-bold mb-6" data-translate="settings_title">Settings</h2>
+        <div class="space-y-6">
+            <div>
+                <label for="theme-select" class="block text-sm font-medium text-[var(--secondary-text)] mb-2" data-translate="theme">Theme</label>
+                <select id="theme-select" class="w-full bg-[var(--secondary-bg)] border border-[var(--border-color)] rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]">
+                    <option value="light" data-translate="light">Light</option>
+                    <option value="dark" data-translate="dark">Dark</option>
+                    <option value="purple" data-translate="purple">Purple</option>
+                    <option value="system" data-translate="system">System</option>
+                </select>
+            </div>
+            <div>
+                <label for="language-select" class="block text-sm font-medium text-[var(--secondary-text)] mb-2" data-translate="language">Language</label>
+                <select id="language-select" class="w-full bg-[var(--secondary-bg)] border border-[var(--border-color)] rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]">
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="ru">Russian</option>
+                    <option value="zh">Chinese</option>
+                    <option value="ja">Japanese</option>
+                    <option value="ko">Korean</option>
+                    <option value="pt">Portuguese</option>
+                    <option value="it">Italian</option>
+                    <option value="hi">Hindi</option>
+                    <option value="id">Indonesian</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-[var(--secondary-text)] mb-2" data-translate="temperature_unit">Temperature Unit</label>
+                <div id="temp-unit-select" class="flex items-center border border-[var(--border-color)] rounded-md p-1 bg-[var(--secondary-bg)]">
+                    <button data-unit="c" class="flex-1 py-1 px-3 rounded-md text-sm">℃</button>
+                    <button data-unit="f" class="flex-1 py-1 px-3 rounded-md text-sm">℉</button>
+                    <button data-unit="k" class="flex-1 py-1 px-3 rounded-md text-sm">K</button>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-[var(--secondary-text)] mb-2" data-translate="speed_unit">Speed Unit</label>
+                <div id="speed-unit-select" class="flex items-center border border-[var(--border-color)] rounded-md p-1 bg-[var(--secondary-bg)]">
+                    <button data-unit="kmh" class="flex-1 py-1 px-3 rounded-md text-sm">km/h</button>
+                    <button data-unit="mph" class="flex-1 py-1 px-3 rounded-md text-sm">mph</button>
+                    <button data-unit="ms" class="flex-1 py-1 px-3 rounded-md text-sm">m/s</button>
+                </div>
+            </div>
+        </div>
+         <button id="close-settings-modal" class="btn-rounded mt-8 w-full bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white font-semibold py-2 px-4 transition-colors" data-translate="close">Close</button>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- STATE MANAGEMENT ---
+    const state = {
+        locations: [],
+        currentLocation: null,
+        settings: {
+            theme: 'system',
+            language: 'en',
+            tempUnit: 'f',
+            speedUnit: 'kmh',
+        },
+        maxLocations: 1000,
+    };
+
+    // --- DOM ELEMENTS ---
+    const dom = {
+        sidebar: document.getElementById('sidebar'),
+        sidebarOverlay: document.getElementById('sidebar-overlay'),
+        sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
+        menuBtnMobile: document.getElementById('menu-icon-btn-mobile'),
+        myLocationBtn: document.getElementById('my-location-btn'),
+        locationsList: document.getElementById('locations-list'),
+        searchInput: document.getElementById('search-input'),
+        searchResults: document.getElementById('search-results'),
+        mobileSearchInput: document.getElementById('mobile-search-input'),
+        mobileSearchResults: document.getElementById('mobile-search-results'),
+        mobileSearchBar: document.getElementById('mobile-search-bar'),
+        searchIconBtn: document.getElementById('search-icon-btn'),
+        mobileSearchBackBtn: document.getElementById('mobile-search-back'),
+        locationName: document.getElementById('location-name'),
+        currentTime: document.getElementById('current-time'),
+        lastUpdated: document.getElementById('last-updated'),
+        currentWeatherIcon: document.getElementById('current-weather-icon'),
+        currentTemp: document.getElementById('current-temp'),
+        currentDescription: document.getElementById('current-description'),
+        hourlyForecastContainer: document.getElementById('hourly-forecast-container'),
+        forecastContainer: document.getElementById('forecast-container'),
+        daylightContainer: document.getElementById('daylight-container'),
+        appsBtn: document.getElementById('apps-btn'),
+        appsWrapper: document.getElementById('apps-wrapper'),
+        helpBtn: document.getElementById('help-btn'),
+        helpModal: document.getElementById('help-modal'),
+        closeHelpModal: document.getElementById('close-help-modal'),
+        settingsBtn: document.getElementById('settings-btn'),
+        settingsModal: document.getElementById('settings-modal'),
+        closeSettingsModal: document.getElementById('close-settings-modal'),
+        modalOverlay: document.getElementById('modal-overlay'),
+        themeSelect: document.getElementById('theme-select'),
+        languageSelect: document.getElementById('language-select'),
+        tempUnitSelect: document.getElementById('temp-unit-select'),
+        speedUnitSelect: document.getElementById('speed-unit-select'),
+        weatherLogoIcon: document.getElementById('weather-logo-icon'),
+        weatherCodesBtn: document.getElementById('weather-codes-btn'),
+        weatherCodesModal: document.getElementById('weather-codes-modal'),
+        weatherCodesContainer: document.getElementById('weather-codes-container'),
+        closeCodesModal: document.getElementById('close-codes-modal'),
+    };
+
+    // --- TRANSLATIONS ---
+    const translations = {
+        en: {
+            my_location: "My Location", locations: "Locations", "16_day_forecast": "16-Day Forecast", today_forecast: "Today's Forecast",
+            daylight: "Daylight", help_title: "How to Use GAMERYT Weather", weather_codes_list: "Weather Codes List",
+            help_p1: "Welcome! Use the search bar to find any city. Click 'My Location' for weather at your position. Saved locations appear on the left.",
+            help_p2: "Click the settings icon to change theme, language, and units. The apps icon links to other GAMERYT applications.",
+            got_it: "Got it!", settings_title: "Settings", theme: "Theme", light: "Light", dark: "Dark", purple: "Purple", system: "System",
+            language: "Language", temperature_unit: "Temperature Unit", speed_unit: "Speed Unit", close: "Close", last_updated: "Last updated:",
+            feels_like: "Feels Like", uv_index: "UV Index", wind: "Wind", sunrise_sunset: "Sunrise/Sunset", precipitation: "Precipitation",
+            visibility: "Visibility", humidity: "Humidity", moon_phase: "Moon Phase", pressure: "Pressure",
+            sunrise_today: "Sunrise", sunset_today: "Sunset", total_daylight: "Total Daylight",
+            location_added: "Location added", location_removed: "Location removed", location_exists: "Location already saved", list_full: "Location list is full",
+            getting_location: "Getting your location...", location_error: "Could not get location",
+        },
+        es: {
+            my_location: "Mi Ubicación", locations: "Ubicaciones", "16_day_forecast": "Pronóstico de 16 Días", today_forecast: "Pronóstico de Hoy",
+            daylight: "Luz del Día", help_title: "Cómo Usar GAMERYT Weather", weather_codes_list: "Lista de Códigos del Tiempo",
+            help_p1: "¡Bienvenido! Usa la barra de búsqueda para encontrar cualquier ciudad. Haz clic en 'Mi Ubicación' para el clima actual. Las ubicaciones guardadas aparecen a la izquierda.",
+            help_p2: "Haz clic en el ícono de configuración para cambiar tema, idioma y unidades. El ícono de aplicaciones ofrece enlaces a otras aplicaciones de GAMERYT.",
+            got_it: "¡Entendido!", settings_title: "Configuración", theme: "Tema", light: "Claro", dark: "Oscuro", purple: "Púrpura", system: "Sistema",
+            language: "Idioma", temperature_unit: "Unidad de Temperatura", speed_unit: "Unidad de Velocidad", close: "Cerrar", last_updated: "Última actualización:",
+            feels_like: "Sensación Térmica", uv_index: "Índice UV", wind: "Viento", sunrise_sunset: "Amanecer/Atardecer", precipitation: "Precipitación",
+            visibility: "Visibilidad", humidity: "Humedad", moon_phase: "Fase Lunar", pressure: "Presión",
+            sunrise_today: "Amanecer", sunset_today: "Atardecer", total_daylight: "Luz Diurna Total",
+            location_added: "Ubicación añadida", location_removed: "Ubicación eliminada", location_exists: "La ubicación ya está guardada", list_full: "La lista de ubicaciones está llena",
+            getting_location: "Obteniendo tu ubicación...", location_error: "No se pudo obtener la ubicación",
+        },
+        // Other languages...
+        fr: {
+            my_location: "Ma position", locations: "Lieux", "16_day_forecast": "Prévisions sur 16 jours", today_forecast: "Prévisions du jour",
+            daylight: "Lumière du jour", help_title: "Comment utiliser GAMERYT Weather", weather_codes_list: "Liste des codes météo",
+            help_p1: "Bienvenue ! Utilisez la barre de recherche pour trouver une ville. Cliquez sur 'Ma position' pour la météo de votre position. Les lieux enregistrés apparaissent à gauche.",
+            help_p2: "Cliquez sur l'icône des paramètres pour changer le thème, la langue et les unités. L'icône des applications donne accès aux autres applications GAMERYT.",
+            got_it: "Compris !", settings_title: "Paramètres", theme: "Thème", light: "Clair", dark: "Sombre", purple: "Violet", system: "Système",
+            language: "Langue", temperature_unit: "Unité de température", speed_unit: "Unité de vitesse", close: "Fermer", last_updated: "Dernière mise à jour :",
+            feels_like: "Ressenti", uv_index: "Indice UV", wind: "Vent", sunrise_sunset: "Lever/Coucher du soleil", precipitation: "Précipitations",
+            visibility: "Visibilité", humidity: "Humidité", moon_phase: "Phase lunaire", pressure: "Pression",
+            sunrise_today: "Lever du soleil", sunset_today: "Coucher du soleil", total_daylight: "Durée du jour",
+            location_added: "Lieu ajouté", location_removed: "Lieu supprimé", location_exists: "Lieu déjà enregistré", list_full: "La liste des lieux est pleine",
+            getting_location: "Obtention de votre position...", location_error: "Impossible d'obtenir la position",
+        },
+        de: {
+            my_location: "Mein Standort", locations: "Orte", "16_day_forecast": "16-Tage-Vorhersage", today_forecast: "Heutige Vorhersage",
+            daylight: "Tageslicht", help_title: "So verwenden Sie GAMERYT Weather", weather_codes_list: "Wettercodes-Liste",
+            help_p1: "Willkommen! Verwenden Sie die Suchleiste, um eine Stadt zu finden. Klicken Sie auf 'Mein Standort' für das Wetter an Ihrem Standort. Gespeicherte Orte erscheinen links.",
+            help_p2: "Klicken Sie auf das Einstellungssymbol, um Thema, Sprache und Einheiten zu ändern. Das App-Symbol bietet Links zu anderen GAMERYT-Anwendungen.",
+            got_it: "Verstanden!", settings_title: "Einstellungen", theme: "Thema", light: "Hell", dark: "Dunkel", purple: "Lila", system: "System",
+            language: "Sprache", temperature_unit: "Temperatureinheit", speed_unit: "Geschwindigkeitseinheit", close: "Schließen", last_updated: "Zuletzt aktualisiert:",
+            feels_like: "Gefühlt", uv_index: "UV-Index", wind: "Wind", sunrise_sunset: "Sonnenaufgang/-untergang", precipitation: "Niederschlag",
+            visibility: "Sichtweite", humidity: "Luftfeuchtigkeit", moon_phase: "Mondphase", pressure: "Luftdruck",
+            sunrise_today: "Sonnenaufgang", sunset_today: "Sonnenuntergang", total_daylight: "Gesamttageslicht",
+            location_added: "Ort hinzugefügt", location_removed: "Ort entfernt", location_exists: "Ort bereits gespeichert", list_full: "Ortsliste ist voll",
+            getting_location: "Standort wird ermittelt...", location_error: "Standort konnte nicht ermittelt werden",
+        },
+        ru: {
+            my_location: "Моё местоположение", locations: "Места", "16_day_forecast": "Прогноз на 16 дней", today_forecast: "Прогноз на сегодня",
+            daylight: "Световой день", help_title: "Как пользоваться GAMERYT Weather", weather_codes_list: "Список погодных кодов",
+            help_p1: "Добро пожаловать! Используйте строку поиска для поиска города. Нажмите 'Моё местоположение' для погоды по вашему местоположению. Сохранённые места отображаются слева.",
+            help_p2: "Нажмите на значок настроек для смены темы, языка и единиц. Значок приложений ведёт к другим приложениям GAMERYT.",
+            got_it: "Понятно!", settings_title: "Настройки", theme: "Тема", light: "Светлая", dark: "Тёмная", purple: "Фиолетовая", system: "Система",
+            language: "Язык", temperature_unit: "Единица температуры", speed_unit: "Единица скорости", close: "Закрыть", last_updated: "Последнее обновление:",
+            feels_like: "Ощущается как", uv_index: "УФ-индекс", wind: "Ветер", sunrise_sunset: "Восход/Закат", precipitation: "Осадки",
+            visibility: "Видимость", humidity: "Влажность", moon_phase: "Фаза луны", pressure: "Давление",
+            sunrise_today: "Восход", sunset_today: "Закат", total_daylight: "Общая продолжительность дня",
+            location_added: "Место добавлено", location_removed: "Место удалено", location_exists: "Место уже сохранено", list_full: "Список мест заполнен",
+            getting_location: "Получение вашего местоположения...", location_error: "Не удалось получить местоположение",
+        },
+        zh: {
+            my_location: "我的位置", locations: "地点", "16_day_forecast": "16天预报", today_forecast: "今日预报",
+            daylight: "日照", help_title: "如何使用GAMERYT Weather", weather_codes_list: "天气代码列表",
+            help_p1: "欢迎！使用搜索栏查找城市。点击“我的位置”获取当前位置天气。已保存地点显示在左侧。",
+            help_p2: "点击设置图标更改主题、语言和单位。应用图标可快速访问其他GAMERYT应用。",
+            got_it: "知道了！", settings_title: "设置", theme: "主题", light: "浅色", dark: "深色", purple: "紫色", system: "系统",
+            language: "语言", temperature_unit: "温度单位", speed_unit: "速度单位", close: "关闭", last_updated: "最后更新：",
+            feels_like: "体感温度", uv_index: "紫外线指数", wind: "风", sunrise_sunset: "日出/日落", precipitation: "降水",
+            visibility: "能见度", humidity: "湿度", moon_phase: "月相", pressure: "气压",
+            sunrise_today: "日出", sunset_today: "日落", total_daylight: "总日照时长",
+            location_added: "已添加地点", location_removed: "已移除地点", location_exists: "地点已保存", list_full: "地点列表已满",
+            getting_location: "正在获取您的位置...", location_error: "无法获取位置",
+        },
+        ja: {
+            my_location: "現在地", locations: "場所", "16_day_forecast": "16日間予報", today_forecast: "今日の予報",
+            daylight: "日照時間", help_title: "GAMERYT Weatherの使い方", weather_codes_list: "天気コード一覧",
+            help_p1: "ようこそ！検索バーで都市を探してください。「現在地」ボタンで現在地の天気を取得できます。保存した場所は左側に表示されます。",
+            help_p2: "設定アイコンでテーマ、言語、単位を変更できます。アプリのアイコンから他のGAMERYTアプリにアクセスできます。",
+            got_it: "了解！", settings_title: "設定", theme: "テーマ", light: "ライト", dark: "ダーク", purple: "パープル", system: "システム",
+            language: "言語", temperature_unit: "温度単位", speed_unit: "速度単位", close: "閉じる", last_updated: "最終更新：",
+            feels_like: "体感温度", uv_index: "UV指数", wind: "風", sunrise_sunset: "日の出/日の入り", precipitation: "降水量",
+            visibility: "視程", humidity: "湿度", moon_phase: "月相", pressure: "気圧",
+            sunrise_today: "日の出", sunset_today: "日の入り", total_daylight: "合計日照時間",
+            location_added: "場所を追加しました", location_removed: "場所を削除しました", location_exists: "場所は既に保存されています", list_full: "場所リストがいっぱいです",
+            getting_location: "現在地を取得中...", location_error: "現在地を取得できません",
+        },
+        ko: {
+            my_location: "내 위치", locations: "위치", "16_day_forecast": "16일 예보", today_forecast: "오늘의 예보",
+            daylight: "일조량", help_title: "GAMERYT Weather 사용법", weather_codes_list: "날씨 코드 목록",
+            help_p1: "환영합니다! 검색창에서 도시를 찾으세요. '내 위치'를 클릭하면 현재 위치의 날씨를 볼 수 있습니다. 저장된 위치는 왼쪽에 표시됩니다.",
+            help_p2: "설정 아이콘을 클릭해 테마, 언어, 단위를 변경하세요. 앱 아이콘으로 다른 GAMERYT 앱에 빠르게 접근할 수 있습니다.",
+            got_it: "확인!", settings_title: "설정", theme: "테마", light: "라이트", dark: "다크", purple: "퍼플", system: "시스템",
+            language: "언어", temperature_unit: "온도 단위", speed_unit: "속도 단위", close: "닫기", last_updated: "마지막 업데이트:",
+            feels_like: "체감 온도", uv_index: "UV 지수", wind: "바람", sunrise_sunset: "일출/일몰", precipitation: "강수량",
+            visibility: "가시거리", humidity: "습도", moon_phase: "달의 위상", pressure: "기압",
+            sunrise_today: "일출", sunset_today: "일몰", total_daylight: "총 일조 시간",
+            location_added: "위치가 추가되었습니다", location_removed: "위치가 삭제되었습니다", location_exists: "이미 저장된 위치입니다", list_full: "위치 목록이 가득 찼습니다",
+            getting_location: "위치를 가져오는 중...", location_error: "위치를 가져올 수 없습니다",
+        },
+        pt: {
+            my_location: "Minha localização", locations: "Locais", "16_day_forecast": "Previsão de 16 dias", today_forecast: "Previsão de hoje",
+            daylight: "Luz do dia", help_title: "Como usar o GAMERYT Weather", weather_codes_list: "Lista de códigos do tempo",
+            help_p1: "Bem-vindo! Use a barra de pesquisa para encontrar qualquer cidade. Clique em 'Minha localização' para ver o clima da sua posição. Locais salvos aparecem à esquerda.",
+            help_p2: "Clique no ícone de configurações para alterar tema, idioma e unidades. O ícone de aplicativos fornece links para outros aplicativos GAMERYT.",
+            got_it: "Entendi!", settings_title: "Configurações", theme: "Tema", light: "Claro", dark: "Escuro", purple: "Roxo", system: "Sistema",
+            language: "Idioma", temperature_unit: "Unidade de temperatura", speed_unit: "Unidade de velocidade", close: "Fechar", last_updated: "Última atualização:",
+            feels_like: "Sensação térmica", uv_index: "Índice UV", wind: "Vento", sunrise_sunset: "Nascer/Pôr do sol", precipitation: "Precipitação",
+            visibility: "Visibilidade", humidity: "Umidade", moon_phase: "Fase da lua", pressure: "Pressão",
+            sunrise_today: "Nascer do sol", sunset_today: "Pôr do sol", total_daylight: "Luz do dia total",
+            location_added: "Local adicionado", location_removed: "Local removido", location_exists: "Local já salvo", list_full: "Lista de locais cheia",
+            getting_location: "Obtendo sua localização...", location_error: "Não foi possível obter a localização",
+        },
+        it: {
+            my_location: "La mia posizione", locations: "Luoghi", "16_day_forecast": "Previsioni 16 giorni", today_forecast: "Previsioni di oggi",
+            daylight: "Luce del giorno", help_title: "Come usare GAMERYT Weather", weather_codes_list: "Elenco codici meteo",
+            help_p1: "Benvenuto! Usa la barra di ricerca per trovare una città. Clicca su 'La mia posizione' per il meteo attuale. I luoghi salvati appaiono a sinistra.",
+            help_p2: "Clicca sull'icona delle impostazioni per cambiare tema, lingua e unità. L'icona delle app offre link ad altre applicazioni GAMERYT.",
+            got_it: "Capito!", settings_title: "Impostazioni", theme: "Tema", light: "Chiaro", dark: "Scuro", purple: "Viola", system: "Sistema",
+            language: "Lingua", temperature_unit: "Unità di temperatura", speed_unit: "Unità di velocità", close: "Chiudi", last_updated: "Ultimo aggiornamento:",
+            feels_like: "Percepita", uv_index: "Indice UV", wind: "Vento", sunrise_sunset: "Alba/Tramonto", precipitation: "Precipitazioni",
+            visibility: "Visibilità", humidity: "Umidità", moon_phase: "Fase lunare", pressure: "Pressione",
+            sunrise_today: "Alba", sunset_today: "Tramonto", total_daylight: "Luce totale del giorno",
+            location_added: "Luogo aggiunto", location_removed: "Luogo rimosso", location_exists: "Luogo già salvato", list_full: "Elenco luoghi pieno",
+            getting_location: "Ottenimento posizione...", location_error: "Impossibile ottenere la posizione",
+        },
+        hi: {
+            my_location: "मेरा स्थान", locations: "स्थान", "16_day_forecast": "16-दिन पूर्वानुमान", today_forecast: "आज का पूर्वानुमान",
+            daylight: "दिन का उजाला", help_title: "GAMERYT Weather का उपयोग कैसे करें", weather_codes_list: "मौसम कोड सूची",
+            help_p1: "स्वागत है! किसी भी शहर को खोजने के लिए खोज बार का उपयोग करें। 'मेरा स्थान' पर क्लिक करें अपने स्थान का मौसम जानने के लिए। सहेजे गए स्थान बाईं ओर दिखेंगे।",
+            help_p2: "थीम, भाषा और इकाइयाँ बदलने के लिए सेटिंग्स आइकन पर क्लिक करें। ऐप्स आइकन से अन्य GAMERYT ऐप्स के लिंक मिलेंगे।",
+            got_it: "समझ गया!", settings_title: "सेटिंग्स", theme: "थीम", light: "हल्का", dark: "गहरा", purple: "बैंगनी", system: "सिस्टम",
+            language: "भाषा", temperature_unit: "तापमान इकाई", speed_unit: "गति इकाई", close: "बंद करें", last_updated: "अंतिम अपडेट:",
+            feels_like: "अनुभूत तापमान", uv_index: "यूवी सूचकांक", wind: "हवा", sunrise_sunset: "सूर्योदय/सूर्यास्त", precipitation: "वर्षा",
+            visibility: "दृश्यता", humidity: "आर्द्रता", moon_phase: "चंद्र चरण", pressure: "दबाव",
+            sunrise_today: "सूर्योदय", sunset_today: "सूर्यास्त", total_daylight: "कुल दिन का उजाला",
+            location_added: "स्थान जोड़ा गया", location_removed: "स्थान हटाया गया", location_exists: "स्थान पहले से सहेजा गया है", list_full: "स्थान सूची पूरी है",
+            getting_location: "आपका स्थान प्राप्त किया जा रहा है...", location_error: "स्थान प्राप्त नहीं कर सके",
+        },
+        id: {
+            my_location: "Lokasi Saya", locations: "Lokasi", "16_day_forecast": "Prakiraan 16 Hari", today_forecast: "Prakiraan Hari Ini",
+            daylight: "Cahaya Matahari", help_title: "Cara Menggunakan GAMERYT Weather", weather_codes_list: "Daftar Kode Cuaca",
+            help_p1: "Selamat datang! Gunakan bilah pencarian untuk menemukan kota. Klik 'Lokasi Saya' untuk cuaca di posisi Anda. Lokasi tersimpan muncul di kiri.",
+            help_p2: "Klik ikon pengaturan untuk mengubah tema, bahasa, dan satuan. Ikon aplikasi menyediakan tautan ke aplikasi GAMERYT lainnya.",
+            got_it: "Mengerti!", settings_title: "Pengaturan", theme: "Tema", light: "Terang", dark: "Gelap", purple: "Ungu", system: "Sistem",
+            language: "Bahasa", temperature_unit: "Satuan Suhu", speed_unit: "Satuan Kecepatan", close: "Tutup", last_updated: "Terakhir diperbarui:",
+            feels_like: "Terasa Seperti", uv_index: "Indeks UV", wind: "Angin", sunrise_sunset: "Matahari Terbit/Terbenam", precipitation: "Presipitasi",
+            visibility: "Jarak Pandang", humidity: "Kelembapan", moon_phase: "Fase Bulan", pressure: "Tekanan",
+            sunrise_today: "Matahari Terbit", sunset_today: "Matahari Terbenam", total_daylight: "Total Cahaya Matahari",
+            location_added: "Lokasi ditambahkan", location_removed: "Lokasi dihapus", location_exists: "Lokasi sudah tersimpan", list_full: "Daftar lokasi penuh",
+            getting_location: "Mengambil lokasi Anda...", location_error: "Tidak dapat mengambil lokasi",
+        },
+    };
+
+    // --- WEATHER CODES & ICONS ---
+    const weatherDescriptions = {
+        0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
+        45: 'Fog', 48: 'Depositing rime fog', 51: 'Light drizzle', 53: 'Moderate drizzle', 55: 'Dense drizzle',
+        56: 'Light freezing drizzle', 57: 'Dense freezing drizzle', 61: 'Slight rain', 63: 'Moderate rain', 65: 'Heavy rain',
+        66: 'Light freezing rain', 67: 'Heavy freezing rain', 71: 'Slight snow fall', 73: 'Moderate snow fall', 75: 'Blizzard',
+        77: 'Snow grains', 80: 'Slight rain showers', 81: 'Moderate rain showers', 82: 'Violent rain showers',
+        85: 'Slight snow showers', 86: 'Heavy snow showers', 95: 'Thunderstorm', 96: 'Thunderstorm with slight hail', 99: 'Thunderstorm with heavy hail'
+    };
+    const weatherIcons = {
+        0: `<svg viewBox="0 0 24 24" fill="none" stroke="orange" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`,
+        1: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 0 1 0-14h8a5 5 0 0 1 4.5 5.24"></path><line x1="12" y1="1" x2="12" y2="3"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="1" y1="12" x2="3" y2="12"></line></svg>`,
+        2: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 0 1 0-14h8a5 5 0 0 1 4.5 5.24"></path><path d="M3 12h1"></path></svg>`,
+        3: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="M16 19-2 19"></path></svg>`,
+        45: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 17.5a2.5 2.5 0 0 0-5 0"></path><path d="M16 22h-2m-2 0h-2m-2 0H8"></path><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path></svg>`,
+        48: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 17.5a2.5 2.5 0 0 0-5 0"></path><path d="M16 22h-2m-2 0h-2m-2 0H8"></path><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="M10 19l-2 2"></path><path d="M14 19l-2 2"></path></svg>`,
+        51: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="M8 19v1"></path><path d="M12 20v1"></path><path d="M16 19v1"></path></svg>`,
+        53: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="M8 19v2"></path><path d="M12 20v2"></path><path d="M16 19v2"></path></svg>`,
+        55: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="M8 19v3"></path><path d="M12 20v3"></path><path d="M16 19v3"></path></svg>`,
+        56: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 2"></path><path d="m12 20 2 2"></path><path d="m16 19 2 2"></path></svg>`,
+        57: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 2"></path><path d="m12 20 2 2"></path><path d="m16 19 2 2"></path><path d="M8 21h8"></path></svg>`,
+        61: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 2.5"></path><path d="m12 20 2 2.5"></path><path d="m16 19 2 2.5"></path></svg>`,
+        63: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 3"></path><path d="m12 20 2 3"></path><path d="m16 19 2 3"></path></svg>`,
+        65: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 4"></path><path d="m12 20 2 4"></path><path d="m16 19 2 4"></path></svg>`,
+        66: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 2"></path><path d="m12 20 2 2"></path><path d="m16 19 2 2"></path></svg>`,
+        67: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 2"></path><path d="m12 20 2 2"></path><path d="m16 19 2 2"></path><path d="M8 21h8"></path></svg>`,
+        71: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 2"></path><path d="m12 20 2 2"></path><path d="m16 19 2 2"></path><path d="m10 19-2 2"></path><path d="m14 20-2 2"></path><path d="m18 19-2 2"></path></svg>`,
+        73: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 2"></path><path d="m12 20 2 2"></path><path d="m16 19 2 2"></path><path d="m10 19-2 2"></path><path d="m14 20-2 2"></path><path d="m18 19-2 2"></path><path d="M8 21h8"></path></svg>`,
+        75: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 2"></path><path d="m12 20 2 2"></path><path d="m16 19 2 2"></path><path d="m10 19-2 2"></path><path d="m14 20-2 2"></path><path d="m18 19-2 2"></path><path d="M8 21h8v1H8z"></path></svg>`,
+        77: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="M12 19v1m-4-2v1m8-1v1"></path></svg>`,
+        80: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 2.5"></path><path d="m12 20 2 2.5"></path><path d="m16 19 2 2.5"></path></svg>`,
+        81: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 3"></path><path d="m12 20 2 3"></path><path d="m16 19 2 3"></path></svg>`,
+        82: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 4"></path><path d="m12 20 2 4"></path><path d="m16 19 2 4"></path></svg>`,
+        85: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 2"></path><path d="m12 20 2 2"></path><path d="m16 19 2 2"></path></svg>`,
+        86: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m8 19 2 2"></path><path d="m12 20 2 2"></path><path d="m16 19 2 2"></path><path d="M8 21h8"></path></svg>`,
+        95: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m13 19-2 4"></path></svg>`,
+        96: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m13 19-2 4"></path><path d="M10 19l-2 2"></path><path d="M14 19l-2 2"></path></svg>`,
+        99: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 19H9.5a7 7 0 1 1 6.71-9h1.79a5 5 0 0 1 0 10z"></path><path d="m13 19-2 4"></path><path d="M10 19l-2 2"></path><path d="M14 19l-2 2"></path><path d="M8 21h8"></path></svg>`,
+    };
+    dom.weatherLogoIcon.innerHTML = weatherIcons[1];
+
+    // --- API & DATA HANDLING ---
+    const getWeatherData = async (lat, lon) => {
+        const forecastApiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m,pressure_msl&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,daylight_duration,uv_index_max&forecast_days=16&timezone=auto`;
+        
+        const today = new Date();
+        const endDate = today.toISOString().split('T')[0];
+        const startDate = new Date(today.setFullYear(today.getFullYear() - 1)).toISOString().split('T')[0];
+        const archiveApiUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endDate}&daily=sunrise,sunset&timezone=auto`;
+
+        try {
+            const [forecastResponse, archiveResponse] = await Promise.all([
+                fetch(forecastApiUrl),
+                fetch(archiveApiUrl)
+            ]);
+            if (!forecastResponse.ok || !archiveResponse.ok) throw new Error('Weather data not available');
+            const forecastData = await forecastResponse.json();
+            const archiveData = await archiveResponse.json();
+            
+            return { ...forecastData, archive: archiveData };
+
+        } catch (error) {
+            showToast(`Error: ${error.message}`, 'error');
+            return null;
+        }
+    };
+
+    const searchCity = async (query) => {
+        if (query.length < 2) {
+            hideSearchResults();
+            return;
+        }
+        const apiUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=5&language=en&format=json`;
+        try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            displaySearchResults(data.results || []);
+        } catch (error) {
+            console.error("Search error:", error);
+            hideSearchResults();
+        }
+    };
+
+    // --- UI UPDATE FUNCTIONS ---
+    const updateUI = (data) => {
+        if (!data || !state.currentLocation) return;
+        
+        dom.locationName.textContent = `${state.currentLocation.name}, ${state.currentLocation.country}`;
+        dom.lastUpdated.innerHTML = `${translate('last_updated')} ${new Date(data.current.time).toLocaleTimeString()}`;
+        
+        dom.currentTemp.innerHTML = `${convertTemp(data.current.temperature_2m)}&deg;`;
+        dom.currentDescription.textContent = getWeatherDescription(data.current.weather_code);
+        dom.currentWeatherIcon.innerHTML = weatherIcons[data.current.weather_code] || weatherIcons[0];
+
+        updateDetailsGrid(data);
+        updateHourlyForecast(data.hourly);
+        updateForecast(data.daily);
+        updateDaylight(data.daily, data.archive);
+    };
+    
+    const updateDetailsGrid = (data) => {
+        const detailsContainer = document.querySelector('.main-content .grid.grid-cols-1');
+        const sunrise = new Date(data.daily.sunrise[0]);
+        const sunset = new Date(data.daily.sunset[0]);
+
+        const details = [
+            { label: 'feels_like', value: `${convertTemp(data.current.apparent_temperature)}&deg;`, icon: '🌡️' },
+            { label: 'uv_index', value: data.daily.uv_index_max[0], icon: '☀️' },
+            { label: 'wind', value: `${convertSpeed(data.current.wind_speed_10m)} ${state.settings.speedUnit}`, icon: '💨' },
+            { label: 'sunrise_sunset', value: `${sunrise.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} / ${sunset.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`, icon: '🌅' },
+            { label: 'precipitation', value: `${data.current.precipitation} mm`, icon: '💧' },
+            { label: 'visibility', value: '-- km', icon: '👁️' },
+            { label: 'humidity', value: `${data.current.relative_humidity_2m}%`, icon: '💦' },
+            { label: 'moon_phase', value: 'Waxing Gibbous', icon: '🌖' },
+            { label: 'pressure', value: `${data.current.pressure_msl} hPa`, icon: '⏲️' },
+        ];
+
+        detailsContainer.innerHTML = details.map(d => `
+            <div class="bg-[var(--primary-bg)] p-4 rounded-lg shadow-sm border border-[var(--border-color)]">
+                <h3 class="text-sm text-[var(--secondary-text)] mb-2 flex items-center gap-2">
+                    <span>${d.icon}</span>
+                    <span data-translate="${d.label}">${translate(d.label)}</span>
+                </h3>
+                <p class="text-2xl font-bold">${d.value}</p>
+            </div>
+        `).join('');
+    };
+
+    const updateHourlyForecast = (hourly) => {
+        dom.hourlyForecastContainer.innerHTML = '';
+        const now = new Date();
+        const startIndex = hourly.time.findIndex(t => new Date(t) > now) - 1;
+        if (startIndex < 0) return;
+
+        for (let i = startIndex; i < startIndex + 24 && i < hourly.time.length; i++) {
+            const date = new Date(hourly.time[i]);
+            const hour = date.toLocaleTimeString(state.settings.language, { hour: 'numeric', hour12: true });
+            const icon = weatherIcons[hourly.weather_code[i]] || weatherIcons[0];
+            const temp = convertTemp(hourly.temperature_2m[i]);
+
+            const forecastItem = document.createElement('div');
+            forecastItem.className = 'text-center p-2 rounded-lg flex-shrink-0 w-20';
+            forecastItem.innerHTML = `
+                <p class="text-sm font-semibold">${hour}</p>
+                <div class="w-10 h-10 mx-auto my-2">${icon}</div>
+                <p class="text-sm font-bold">${temp}&deg;</p>
+            `;
+            dom.hourlyForecastContainer.appendChild(forecastItem);
+        }
+    };
+
+    const updateForecast = (daily) => {
+        dom.forecastContainer.innerHTML = '';
+        for (let i = 0; i < 16; i++) {
+            const date = new Date(daily.time[i]);
+            const day = date.toLocaleDateString(state.settings.language, { weekday: 'short' });
+            const dayNum = date.getDate();
+            const icon = weatherIcons[daily.weather_code[i]] || weatherIcons[0];
+            const maxTemp = convertTemp(daily.temperature_2m_max[i]);
+            const minTemp = convertTemp(daily.temperature_2m_min[i]);
+
+            const forecastItem = document.createElement('div');
+            forecastItem.className = 'text-center p-2 rounded-lg hover:bg-[var(--tertiary-bg)] cursor-pointer';
+            forecastItem.innerHTML = `
+                <p class="text-sm font-semibold">${day}</p>
+                <p class="text-xs text-[var(--secondary-text)] mb-2">${dayNum}</p>
+                <div class="w-10 h-10 mx-auto mb-2">${icon}</div>
+                <p class="text-sm font-bold">${maxTemp}&deg;</p>
+                <p class="text-xs text-[var(--secondary-text)]">${minTemp}&deg;</p>
+            `;
+            dom.forecastContainer.appendChild(forecastItem);
+        }
+    };
+
+    const updateDaylight = (daily, archive) => {
+        dom.daylightContainer.innerHTML = '';
+        
+        const sunriseToday = new Date(daily.sunrise[0]);
+        const sunsetToday = new Date(daily.sunset[0]);
+        const totalDaylightSeconds = daily.daylight_duration[0];
+        const hours = Math.floor(totalDaylightSeconds / 3600);
+        const minutes = Math.floor((totalDaylightSeconds % 3600) / 60);
+
+        const daylightInfo = `
+            <div class="bg-[var(--tertiary-bg)] p-4 rounded-lg space-y-3 mb-4">
+                <div class="flex justify-between text-sm">
+                    <span data-translate="sunrise_today">${translate('sunrise_today')}</span>
+                    <span class="font-semibold">${sunriseToday.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                </div>
+                 <div class="flex justify-between text-sm">
+                    <span data-translate="sunset_today">${translate('sunset_today')}</span>
+                    <span class="font-semibold">${sunsetToday.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                    <div class="bg-[var(--accent-color)] h-2.5 rounded-full" style="width: ${calculateDaylightProgress(sunriseToday, sunsetToday)}%"></div>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span data-translate="total_daylight">${translate('total_daylight')}</span>
+                    <span class="font-semibold">${hours}h ${minutes}m</span>
+                </div>
+            </div>
+        `;
+        dom.daylightContainer.innerHTML += daylightInfo;
+
+        const monthlyData = {};
+        archive.daily.time.forEach((time, index) => {
+            const date = new Date(time + 'T00:00:00'); // Ensure it's parsed as local time
+            const month = date.getMonth();
+            if (!monthlyData[month]) {
+                monthlyData[month] = { sunrise: [], sunset: [] };
+            }
+            monthlyData[month].sunrise.push(new Date(archive.daily.sunrise[index]).getTime());
+            monthlyData[month].sunset.push(new Date(archive.daily.sunset[index]).getTime());
+        });
+
+        const monthlyHtml = Array.from({length: 12}, (_, i) => {
+            const monthName = new Date(null, i, 1).toLocaleDateString(state.settings.language, {month: 'short'});
+            if (!monthlyData[i]) return '';
+            const avgSunrise = new Date(monthlyData[i].sunrise.reduce((a, b) => a + b, 0) / monthlyData[i].sunrise.length);
+            const avgSunset = new Date(monthlyData[i].sunset.reduce((a, b) => a + b, 0) / monthlyData[i].sunset.length);
+            return `
+                <div class="flex justify-between items-center text-sm py-2 border-b border-[var(--border-color)]">
+                    <span class="font-semibold">${monthName}</span>
+                    <div class="flex gap-4 text-[var(--secondary-text)]">
+                        <span>🌅 ${avgSunrise.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        <span>🌇 ${avgSunset.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        dom.daylightContainer.innerHTML += `<div>${monthlyHtml}</div>`;
+    };
+    
+    const calculateDaylightProgress = (sunrise, sunset) => {
+        const now = new Date().getTime();
+        const sunriseTime = sunrise.getTime();
+        const sunsetTime = sunset.getTime();
+        if (now < sunriseTime) return 0;
+        if (now > sunsetTime) return 100;
+        return ((now - sunriseTime) / (sunsetTime - sunriseTime)) * 100;
+    };
+
+    const displaySearchResults = (results) => {
+        const render = (container) => {
+            container.innerHTML = '';
+            if (!results || results.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-sm text-[var(--secondary-text)]">No results found</div>`;
+            } else {
+                results.forEach(result => {
+                    const item = document.createElement('div');
+                    item.className = 'p-4 hover:bg-[var(--tertiary-bg)] cursor-pointer flex justify-between items-center';
+                    item.innerHTML = `
+                        <div>
+                            <p class="font-semibold">${result.name}</p>
+                            <p class="text-sm text-[var(--secondary-text)]">${result.admin1 || ''}, ${result.country}</p>
+                        </div>
+                        <button class="add-location-btn p-2 rounded-full hover:bg-[var(--accent-color)] hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        </button>
+                    `;
+                    item.querySelector('.add-location-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const location = { id: result.id, name: result.name, country: result.country, lat: result.latitude, lon: result.longitude };
+                        addLocation(location);
+                        hideSearchResults();
+                    });
+                    item.addEventListener('click', () => {
+                         const location = { id: result.id, name: result.name, country: result.country, lat: result.latitude, lon: result.longitude };
+                        selectLocation(location);
+                        hideSearchResults();
+                    });
+                    container.appendChild(item);
+                });
+            }
+            container.classList.remove('hidden');
+        };
+        render(dom.searchResults);
+        render(dom.mobileSearchResults);
+    };
+
+    const hideSearchResults = () => {
+        dom.searchResults.classList.add('hidden');
+        dom.mobileSearchResults.classList.add('hidden');
+        dom.searchInput.value = '';
+        dom.mobileSearchInput.value = '';
+    };
+
+    const renderLocationsList = () => {
+        dom.locationsList.innerHTML = '';
+        state.locations.forEach(loc => {
+            const item = document.createElement('div');
+            item.className = 'sidebar-location-item flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-[var(--tertiary-bg)] group';
+            item.dataset.id = loc.id;
+            item.innerHTML = `
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    <span class="sidebar-text font-medium truncate">${loc.name}</span>
+                </div>
+                <button class="remove-location-btn p-1 rounded-full hover:bg-red-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity sidebar-text">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            `;
+            item.addEventListener('click', () => selectLocation(loc));
+            item.querySelector('.remove-location-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                removeLocation(loc.id);
+            });
+            dom.locationsList.appendChild(item);
+        });
+    };
+
+    // --- LOCATION MANAGEMENT ---
+    const addLocation = (location) => {
+        if (state.locations.length >= state.maxLocations) {
+            showToast(translate('list_full'), 'error');
+            return;
+        }
+        if (state.locations.some(l => l.id === location.id)) {
+            showToast(translate('location_exists'), 'warning');
+            return;
+        }
+        state.locations.push(location);
+        saveState();
+        renderLocationsList();
+        selectLocation(location);
+        showToast(translate('location_added'), 'success');
+    };
+
+    const removeLocation = (id) => {
+        state.locations = state.locations.filter(l => l.id !== id);
+        saveState();
+        renderLocationsList();
+        showToast(translate('location_removed'), 'info');
+        if (state.currentLocation && state.currentLocation.id === id) {
+            if (state.locations.length > 0) {
+                selectLocation(state.locations[0]);
+            } else {
+                state.currentLocation = null;
+            }
+        }
+    };
+    
+    const selectLocation = async (location) => {
+        state.currentLocation = location;
+        saveState();
+        const weatherData = await getWeatherData(location.lat, location.lon);
+        if (weatherData) {
+            updateUI(weatherData);
+        }
+        closeSidebar(); // Close any open sidebars
+    };
+
+    const getUserLocation = () => {
+        if (!navigator.geolocation) {
+            showToast('Geolocation is not supported by your browser', 'error');
+            return;
+        }
+        showToast(translate('getting_location'), 'info');
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const { latitude, longitude } = position.coords;
+            const reverseGeoUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+             try {
+                const geoResponse = await fetch(reverseGeoUrl);
+                const geoData = await geoResponse.json();
+                const location = {
+                    id: geoData.place_id || Date.now(),
+                    name: geoData.address.city || geoData.address.town || 'Current Location',
+                    country: geoData.address.country,
+                    lat: latitude,
+                    lon: longitude
+                };
+                selectLocation(location);
+            } catch (error) {
+                showToast(translate('location_error'), 'error');
+            }
+        }, () => {
+            showToast(translate('location_error'), 'error');
+        });
+    };
+
+    // --- SETTINGS ---
+    const applyTheme = (theme) => {
+        const doc = document.documentElement;
+        doc.classList.remove('light', 'dark', 'purple');
+        if (theme === 'system') {
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            doc.classList.add(systemPrefersDark ? 'dark' : 'light');
+        } else {
+            doc.classList.add(theme);
+        }
+        state.settings.theme = theme;
+        saveState();
+    };
+
+    const applyLanguage = (lang) => {
+        state.settings.language = lang;
+        document.querySelectorAll('[data-translate]').forEach(el => {
+            const key = el.dataset.translate;
+            el.textContent = translate(key);
+        });
+        saveState();
+        if (state.currentLocation) selectLocation(state.currentLocation);
+    };
+    
+    const applyTempUnit = (unit) => {
+        state.settings.tempUnit = unit;
+        document.querySelectorAll('#temp-unit-select button').forEach(btn => {
+            btn.classList.toggle('bg-[var(--accent-color)]', btn.dataset.unit === unit);
+            btn.classList.toggle('text-white', btn.dataset.unit === unit);
+        });
+        saveState();
+        if (state.currentLocation) selectLocation(state.currentLocation);
+    };
+    
+    const applySpeedUnit = (unit) => {
+        state.settings.speedUnit = unit;
+        document.querySelectorAll('#speed-unit-select button').forEach(btn => {
+            btn.classList.toggle('bg-[var(--accent-color)]', btn.dataset.unit === unit);
+            btn.classList.toggle('text-white', btn.dataset.unit === unit);
+        });
+        saveState();
+        if (state.currentLocation) selectLocation(state.currentLocation);
+    };
+
+    const convertTemp = (celsius) => {
+        switch (state.settings.tempUnit) {
+            case 'f': return Math.round(celsius * 9/5 + 32);
+            case 'k': return Math.round(celsius + 273.15);
+            default: return Math.round(celsius);
+        }
+    };
+    
+    const convertSpeed = (kmh) => {
+        switch (state.settings.speedUnit) {
+            case 'mph': return (kmh * 0.621371).toFixed(1);
+            case 'ms': return (kmh / 3.6).toFixed(1);
+            default: return kmh.toFixed(1);
+        }
+    };
+
+    // --- UTILS & HELPERS ---
+    const debounce = (func, delay) => {
+        let timeout;
+        return (...args) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        };
+    };
+
+    const translate = (key) => {
+        return translations[state.settings.language]?.[key] || translations.en[key];
+    }
+
+    const getWeatherDescription = (code) => {
+        return weatherDescriptions[code] || 'Unknown';
+    };
+
+    const populateWeatherCodesModal = () => {
+        dom.weatherCodesContainer.innerHTML = Object.entries(weatherDescriptions).map(([code, desc]) => `
+            <div class="flex items-center gap-4 p-2 rounded-md hover:bg-[var(--tertiary-bg)]">
+                <div class="w-8 h-8 flex-shrink-0">${weatherIcons[code] || ''}</div>
+                <div class="font-semibold w-8">${code}</div>
+                <div>${desc}</div>
+            </div>
+        `).join('');
+    };
+
+    const showToast = (message, type = 'info') => {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const icons = { info: 'ℹ️', success: '✅', warning: '⚠️', error: '❌' };
+        toast.innerHTML = `<span>${icons[type]}</span><span>${message}</span>`;
+        document.getElementById('toast-container').appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, 3000);
+    };
+    
+    const updateTime = () => {
+        dom.currentTime.textContent = new Date().toLocaleString(state.settings.language, {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+    };
+
+    const openModal = (modal) => {
+        modal.classList.remove('hidden');
+        dom.modalOverlay.classList.remove('hidden');
+    };
+
+    const closeModal = () => {
+        dom.helpModal.classList.add('hidden');
+        dom.settingsModal.classList.add('hidden');
+        dom.weatherCodesModal.classList.add('hidden');
+        dom.modalOverlay.classList.add('hidden');
+    };
+    
+    const closeSidebar = () => {
+        dom.sidebar.classList.remove('open', 'is-overlay');
+        dom.sidebarOverlay.classList.remove('open');
+    };
+
+    // --- LOCAL STORAGE ---
+    const saveState = () => {
+        localStorage.setItem('gamerytWeatherState', JSON.stringify(state));
+    };
+
+    const loadState = () => {
+        const savedState = localStorage.getItem('gamerytWeatherState');
+        if (savedState) {
+            const loaded = JSON.parse(savedState);
+            Object.assign(state.settings, loaded.settings);
+            Object.assign(state, { ...loaded, settings: state.settings });
+        }
+    };
+
+    // --- EVENT LISTENERS ---
+    const setupEventListeners = () => {
+        dom.myLocationBtn.addEventListener('click', getUserLocation);
+        
+        const debouncedSearch = debounce((value) => searchCity(value), 300);
+        [dom.searchInput, dom.mobileSearchInput].forEach(input => {
+            input.addEventListener('input', () => debouncedSearch(input.value));
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!dom.searchResults.contains(e.target) && e.target !== dom.searchInput) {
+                dom.searchResults.classList.add('hidden');
+            }
+            if (!dom.mobileSearchResults.contains(e.target) && e.target !== dom.mobileSearchInput) {
+                dom.mobileSearchResults.classList.add('hidden');
+            }
+            if (!dom.appsWrapper.contains(e.target) && e.target !== dom.appsBtn) {
+                dom.appsWrapper.classList.add('hidden');
+            }
+        }, true);
+        
+        // Responsive UI toggles
+        dom.searchIconBtn.addEventListener('click', () => {
+            dom.mobileSearchBar.style.display = 'flex';
+            dom.mobileSearchInput.focus();
+        });
+        dom.mobileSearchBackBtn.addEventListener('click', () => dom.mobileSearchBar.style.display = 'none');
+        
+        dom.menuBtnMobile.addEventListener('click', () => {
+            dom.sidebar.classList.add('open');
+            dom.sidebarOverlay.classList.add('open');
+        });
+        
+        dom.sidebarToggleBtn.addEventListener('click', () => {
+            dom.sidebar.classList.add('is-overlay');
+            dom.sidebarOverlay.classList.add('open');
+        });
+
+        dom.sidebarOverlay.addEventListener('click', closeSidebar);
+
+        // Modals
+        dom.appsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dom.appsWrapper.classList.toggle('hidden');
+        });
+        dom.helpBtn.addEventListener('click', () => openModal(dom.helpModal));
+        dom.closeHelpModal.addEventListener('click', closeModal);
+        dom.settingsBtn.addEventListener('click', () => openModal(dom.settingsModal));
+        dom.closeSettingsModal.addEventListener('click', closeModal);
+        dom.weatherCodesBtn.addEventListener('click', () => {
+            closeModal();
+            openModal(dom.weatherCodesModal);
+        });
+        dom.closeCodesModal.addEventListener('click', closeModal);
+        dom.modalOverlay.addEventListener('click', closeModal);
+
+        // Settings
+        dom.themeSelect.addEventListener('change', (e) => applyTheme(e.target.value));
+        dom.languageSelect.addEventListener('change', (e) => applyLanguage(e.target.value));
+        dom.tempUnitSelect.addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') applyTempUnit(e.target.dataset.unit) });
+        dom.speedUnitSelect.addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') applySpeedUnit(e.target.dataset.unit) });
+    };
+
+    // --- INITIALIZATION ---
+    const init = () => {
+        loadState();
+        
+        dom.themeSelect.value = state.settings.theme;
+        applyTheme(state.settings.theme);
+        dom.languageSelect.value = state.settings.language;
+        applyLanguage(state.settings.language);
+        applyTempUnit(state.settings.tempUnit);
+        applySpeedUnit(state.settings.speedUnit);
+
+        populateWeatherCodesModal();
+        renderLocationsList();
+        setupEventListeners();
+        
+        if (state.currentLocation) {
+            selectLocation(state.currentLocation);
+        } else if (state.locations.length > 0) {
+            selectLocation(state.locations[0]);
+        } else {
+            getUserLocation();
+        }
+        
+        updateTime();
+        setInterval(updateTime, 30000);
+    };
+
+    init();
+});
+</script>
+</body>
+</html>
