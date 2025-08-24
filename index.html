@@ -8,12 +8,15 @@
         <link rel="icon" href="favicon.ico" type="image/x-icon">
     <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none'">
 <meta http-equiv="X-Frame-Options" content="DENY">
-    <script>
-        if (window.top !== window.self) {
-  document.body.innerHTML = "<h1>Embedding not allowed</h1>";
-}
+ 
+        <script>
+  if (window.top !== window.self) {
+    document.write("<h1>Embedding not allowed</h1>");
+    throw new Error("Blocked iframe embedding");
+  }
+</script>
 
-    </script>
+
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
