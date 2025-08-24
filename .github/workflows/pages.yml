@@ -4,6 +4,15 @@ on:
   push:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,19 +21,19 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Pages
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v4
 
       - name: Build site
         run: |
-          mkdir _site
-          cp index.html _site/
-          cp favicon.ico _site/ || true
-          cp _headers _site/
+          mkdir site
+          cp index.html site/
+          cp favicon.ico site/ || true
+          cp _headers site/
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: ./_site
+          path: ./site
 
   deploy:
     environment:
@@ -35,4 +44,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
