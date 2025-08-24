@@ -10,11 +10,13 @@
 <meta http-equiv="X-Frame-Options" content="DENY">
  
         <script>
-  if (window.top !== window.self) {
-    document.write("<h1>Embedding not allowed</h1>");
-    throw new Error("Blocked iframe embedding");
-  }
-</script>
+    // Run immediately, before rest of page loads
+    if (window.top !== window.self) {
+      // Stop page execution
+      document.write("<style>html{display:none !important;}</style>");
+      window.top.location = window.location; // try to break out of iframe
+    }
+  </script>
 
 
 
