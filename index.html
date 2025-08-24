@@ -10,15 +10,15 @@
 <meta http-equiv="X-Frame-Options" content="DENY">
  
         <script>
-    // Run immediately, before rest of page loads
-    if (window.top !== window.self) {
-      // Stop page execution
-      document.write("<style>html{display:none !important;}</style>");
-      window.top.location = window.location; // try to break out of iframe
-    }
+    document.addEventListener("DOMContentLoaded", function() {
+      if (window.top !== window.self) {
+        // Hide everything (html + body)
+        document.documentElement.style.display = "none";  
+        // Optional: redirect out of iframe
+        try { window.top.location = window.location; } catch (e) {}
+      }
+    });
   </script>
-
-
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
