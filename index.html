@@ -18,7 +18,8 @@
       }
     });
   </script>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="https://www.munetios.com/apps/image copy 3.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://api.munetios.com/beautiful-css/beautiful.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -58,6 +59,7 @@
         }
     * {
          font-family: 'Lexend', sans-serif;  
+         box-sizing: border-box;
     }
         body {
             font-family: 'Lexend', sans-serif;
@@ -79,7 +81,7 @@
         }
 
         .sidebar { grid-area: sidebar; z-index: 50; }
-        .topbar { grid-area: topbar; }
+        .topbar { grid-area: topbar; position: sticky; top: 0; z-index: 40; }
         .main-content { grid-area: content; }
         .right-content { grid-area: right; }
         .footer { grid-area: footer; }
@@ -185,7 +187,6 @@
                 left: 0;
                 width: 100%;
                 height: 64px;
-                background-color: var(--primary-bg);
                 z-index: 110;
                 display: none;
                 align-items: center;
@@ -231,7 +232,7 @@
 
     <div class="main-container">
         <!-- Sidebar -->
-        <aside id="sidebar" class="sidebar bg-[var(--primary-bg)] p-4 flex flex-col h-full border-r border-[var(--border-color)] transition-all duration-300">
+        <aside id="sidebar" class="sidebar  liquid-glass p-4 flex flex-col h-full border-r border-[var(--border-color)] transition-all duration-300">
             <div class="sidebar-header flex items-center gap-3 mb-8 px-2">
                 <div id="weather-logo-icon"></div>
                 <span class="sidebar-logo-text text-xl font-bold">Weather</span>
@@ -254,37 +255,37 @@
         <!-- Topbar -->
         <header class="topbar p-4 flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <button id="sidebar-toggle-btn" class="sidebar-toggle-btn p-2 rounded-full hover:bg-[var(--tertiary-bg)] hidden">
+                <button id="sidebar-toggle-btn" class="sidebar-toggle-btn p-2 liquid-glass rounded-full hover:bg-[var(--tertiary-bg)] hidden">
                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
-                <button id="menu-icon-btn-mobile" class="menu-icon-btn-mobile p-2 rounded-full hover:bg-[var(--tertiary-bg)] hidden">
+                <button id="menu-icon-btn-mobile" class="menu-icon-btn-mobile liquid-glass p-2 rounded-full hover:bg-[var(--tertiary-bg)] hidden">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
-                <div class="topbar-search-container relative w-full max-w-[850px]" style="max-width: 850px !important; min-width: 0 !important; width: 100% !important;">
+                <div class="topbar-search-container relative liquid-glass w-full max-w-[850px]" style="max-width: 850px !important; min-width: 0 !important; width: 100% !important;">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-[var(--secondary-text)]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
                     </div>
-                    <input id="search-input" type="text" placeholder="Search for a city..." class="w-full bg-[var(--primary-bg)] border border-[var(--border-color)] text-[var(--primary-text)] rounded-full py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] transition-shadow">
-                    <div id="search-results" class="absolute mt-2 w-full bg-[var(--primary-bg)] rounded-lg shadow-lg z-20 hidden overflow-hidden border border-[var(--border-color)]"></div>
+                    <input id="search-input" type="text" placeholder="Search for a city..." class="w-full liquid-glass border border-[var(--border-color)] text-[var(--primary-text)] rounded-full py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] transition-shadow">
+                    <div id="search-results" class="absolute mt-2 w-full liquid-glass rounded-lg shadow-lg z-20 hidden overflow-hidden border border-[var(--border-color)]"></div>
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
-                <button id="search-icon-btn" class="search-icon-btn p-3 rounded-full hover:bg-[var(--tertiary-bg)] hidden">
+                <button id="search-icon-btn" class="search-icon-btn liquid-glass p-3 rounded-full hover:bg-[var(--tertiary-bg)] hidden">
                     <svg class="h-6 w-6 text-[var(--primary-text)]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
                 </button>
-                <button id="help-btn" class="p-3 rounded-full hover:bg-[var(--tertiary-bg)] bg-[var(--primary-bg)]">
+                <button id="help-btn" class="p-3 rounded-full hover:bg-[var(--tertiary-bg)] liquid-glass">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                 </button>
-                <button id="settings-btn" class="p-3 rounded-full hover:bg-[var(--tertiary-bg)] bg-[var(--primary-bg)]">
+                <button id="settings-btn" class="p-3 rounded-full hover:bg-[var(--tertiary-bg)] liquid-glass">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                 </button>
                 <div class="relative">
-                    <button id="apps-btn" class="p-3 rounded-full hover:bg-[var(--tertiary-bg)] hidden sm:block bg-[var(--primary-bg)]">
+                    <button id="apps-btn" class="p-3 rounded-full hover:bg-[var(--tertiary-bg)] hidden sm:block liquid-glass">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 8h-2v-2h2v2zm0 4h-2v-2h2v2zm0 4h-2v-2h2v2zm4-8h-2v-2h2v2zm0 4h-2v-2h2v2zm0 4h-2v-2h2v2zm4-8h-2v-2h2v2zm0 4h-2v-2h2v2zm0 4h-2v-2h2v2zm4-8h-2v-2h2v2zm0 4h-2v-2h2v2zm0 4h-2v-2h2v2zm4-8h-2v-2h2v2zm0 4h-2v-2h2v2zm0 4h-2v-2h2v2z"/></svg>
                     </button>
-                    <div id="apps-wrapper" class="absolute right-0 mt-2 w-72 bg-[var(--primary-bg)] rounded-lg shadow-lg z-20 hidden border border-[var(--border-color)] p-2" aria-label="Munetios Apps Dropdown">
-                       <p>Not available but you can still see from <a href="https://www.munetios.com/">https://www.munetios.com/</a></p>
+                    <div id="apps-wrapper" style="width: 500px;" class="absolute right-0 mt-2 bg-[var(--primary-bg)] rounded-lg shadow-lg z-20 hidden border border-[var(--border-color)] p-2" aria-label="Munetios Apps Dropdown">
+                  <iframe src="https://www.munetios.com/apps" width="100%" height="700" frameborder="0"></iframe>
                     </div>
                 </div>
             </div>
@@ -293,7 +294,7 @@
         <!-- Main Content -->
         <main class="main-content p-6 overflow-y-auto">
             <!-- Current Weather Header -->
-            <div class="flex flex-col sm:flex-row justify-between items-start mb-6">
+            <div class="flex flex-col sm:flex-row liquid-glass p-4 justify-between items-start mb-6">
                 <div>
                     <h1 id="location-name" class="text-xl sm:text-3xl font-bold">--</h1>
                     <p id="current-time" class="text-[var(--secondary-text)]">--</p>
@@ -311,7 +312,7 @@
             </div>
 
             <!-- Today's Hourly Forecast -->
-            <div class="bg-[var(--primary-bg)] p-4 rounded-lg shadow-sm border border-[var(--border-color)] mb-6">
+            <div class="liquid-glass p-4 shadow-sm border border-[var(--border-color)] mb-6">
                 <h2 class="font-bold mb-4" data-translate="today_forecast">Today's Forecast</h2>
                 <div id="hourly-forecast-container" class="flex overflow-x-auto space-x-4 pb-2">
                     <!-- Hourly forecast items injected here -->
@@ -319,7 +320,7 @@
             </div>
 
             <!-- 16 Day Forecast -->
-            <div class="bg-[var(--primary-bg)] p-4 rounded-lg shadow-sm border border-[var(--border-color)] mb-6">
+            <div class="liquid-glass p-4  shadow-sm border border-[var(--border-color)] mb-6">
                 <h2 class="font-bold mb-4" data-translate="16_day_forecast">16-Day Forecast</h2>
                 <div id="forecast-container" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 gap-4">
                     <!-- Forecast items injected here -->
@@ -333,7 +334,7 @@
         </main>
 
         <!-- Right Content -->
-        <aside class="right-content p-6 overflow-y-auto border-l border-[var(--border-color)] bg-[var(--primary-bg)]">
+        <aside class="right-content liquid-glass p-6 overflow-y-auto border-l border-[var(--border-color)]">
             <!-- Daylight -->
             <div>
                 <h2 class="font-bold mb-4" data-translate="daylight">Daylight</h2>
@@ -351,18 +352,18 @@
     </div>
 
     <!-- Mobile Search Bar -->
-    <div id="mobile-search-bar" class="mobile-search-bar">
+    <div id="mobile-search-bar" class="mobile-search-bar liquid-glass">
         <button id="mobile-search-back" class="p-2 rounded-full hover:bg-[var(--tertiary-bg)] mr-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
-        <div class="relative flex-grow">
-            <input id="mobile-search-input" type="text" placeholder="Search for a city..." class="w-full bg-[var(--tertiary-bg)] border border-[var(--border-color)] text-[var(--primary-text)] rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]">
-            <div id="mobile-search-results" class="absolute mt-2 w-full bg-[var(--primary-bg)] rounded-lg shadow-lg z-20 hidden overflow-hidden border border-[var(--border-color)]"></div>
+        <div class="relative flex-grow liquid-glass">
+            <input id="mobile-search-input" type="text" placeholder="Search for a city..." class="w-full liquid-glass border border-[var(--border-color)] text-[var(--primary-text)] rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]">
+            <div id="mobile-search-results" class="absolute mt-2 w-full liquid-glass rounded-lg shadow-lg z-20 hidden overflow-hidden border border-[var(--border-color)]"></div>
         </div>
     </div>
     
     <!-- Embed Button -->
-    <button id="embed-btn" class="p-4 rounded-full bg-[var(--accent-color)] text-white shadow-lg hover:bg-[var(--accent-color-hover)]">
+    <button id="embed-btn" class="p-4 rounded-full liquid-glass text-white shadow-lg hover:bg-[var(--accent-color-hover)]">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
     </button>
 
@@ -370,7 +371,7 @@
     <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden"></div>
     
     <!-- Help Modal -->
-    <div id="help-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--primary-bg)] p-8 rounded-lg shadow-lg z-[60] w-full max-w-lg hidden">
+    <div id="help-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 liquid-glass p-8 rounded-lg shadow-lg z-[60] w-full max-w-lg hidden">
         <h2 class="text-2xl font-bold mb-4" data-translate="help_title">How to Use Munetios Weather</h2>
         <p class="mb-4 text-[var(--secondary-text)]" data-translate="help_p1">
             Welcome! Use the search bar to find any city. Click the "My Location" button to get weather for your current position. Saved locations appear on the left for quick access.
@@ -383,8 +384,8 @@
     </div>
 
     <!-- Weather Codes Modal -->
-    <div id="weather-codes-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--primary-bg)] p-8 rounded-lg shadow-lg z-[60] w-full max-w-2xl hidden">
-        <h2 class="text-2xl font-bold mb-4" data-translate="weather_codes_list">Weather Codes List</h2>
+        <div id="weather-codes-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 liquid-glass p-8 rounded-lg shadow-lg z-[60] w-full max-w-2xl hidden">
+            <h2 class="text-2xl font-bold mb-4" data-translate="weather_codes_list">Weather Codes List</h2>
         <div id="weather-codes-container" class="max-h-[60vh] overflow-y-auto pr-4 space-y-2">
             <!-- Codes will be injected here -->
         </div>
@@ -392,7 +393,7 @@
     </div>
 
     <!-- Settings Modal -->
-    <div id="settings-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--primary-bg)] p-8 rounded-lg shadow-lg z-[60] w-full max-w-md hidden">
+    <div id="settings-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 liquid-glass p-8 rounded-lg shadow-lg z-[60] w-full max-w-md hidden">
         <h2 class="text-2xl font-bold mb-6" data-translate="settings_title">Settings</h2>
         <div class="space-y-6">
             <div>
@@ -442,7 +443,7 @@
     </div>
 
     <!-- Embed Modal -->
-    <div id="embed-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--primary-bg)] p-6 rounded-lg shadow-lg z-[60] w-full max-w-3xl hidden">
+    <div id="embed-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 liquid-glass p-6 rounded-lg shadow-lg z-[60] w-full max-w-3xl hidden">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold" data-translate="embed_title">Embed Weather</h2>
             <button id="close-embed-modal" class="p-2 rounded-full hover:bg-[var(--tertiary-bg)]">
@@ -752,7 +753,116 @@ document.addEventListener('DOMContentLoaded', () => {
         const endDate = today.toISOString().split('T')[0];
         const startDate = new Date(new Date().setFullYear(today.getFullYear() - 1)).toISOString().split('T')[0];
         const archiveApiUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endDate}&daily=sunrise,sunset&timezone=auto`;
+    // --- RATE LIMITING & CAPTCHA ---
+    // Simple in-memory rate limiter (per reload, not persistent)
+    if (!window._weatherRateLimit) {
+        window._weatherRateLimit = { count: 0, lastReset: Date.now(), captchaRequired: false };
+    }
+    const RATE_LIMIT = 20;
+    const RATE_WINDOW = 60 * 1000; // 1 minute
 
+    // Reset counter if window passed
+    if (Date.now() - window._weatherRateLimit.lastReset > RATE_WINDOW) {
+        window._weatherRateLimit.count = 0;
+        window._weatherRateLimit.lastReset = Date.now();
+        window._weatherRateLimit.captchaRequired = false;
+    }
+
+    // If CAPTCHA required, show modal and wait for solve
+    if (window._weatherRateLimit.captchaRequired) {
+        await showCustomCaptcha();
+    }
+
+    // Increment and check limit
+    window._weatherRateLimit.count++;
+    if (window._weatherRateLimit.count > RATE_LIMIT) {
+        window._weatherRateLimit.captchaRequired = true;
+        await showCustomCaptcha();
+        window._weatherRateLimit.count = 1;
+        window._weatherRateLimit.lastReset = Date.now();
+    }
+
+    // --- Custom CAPTCHA Modal ---
+    async function showCustomCaptcha() {
+        return new Promise((resolve) => {
+        // If modal already exists, just show it
+        let captchaModal = document.getElementById('custom-captcha-modal');
+        if (!captchaModal) {
+            captchaModal = document.createElement('div');
+            captchaModal.id = 'custom-captcha-modal';
+            captchaModal.style.position = 'fixed';
+            captchaModal.style.top = '0';
+            captchaModal.style.left = '0';
+            captchaModal.style.width = '100vw';
+            captchaModal.style.height = '100vh';
+            captchaModal.style.background = 'rgba(0,0,0,0.5)';
+            captchaModal.style.zIndex = '9999';
+            captchaModal.innerHTML = `
+            <div style="background: var(--primary-bg); color: var(--primary-text); max-width: 350px; margin: 10vh auto; padding: 2rem; border-radius: 1rem; box-shadow: 0 8px 32px rgba(0,0,0,0.2); text-align: center;">
+                <h2 style="font-size:1.5rem; margin-bottom:1rem;">Are you human?</h2>
+                <div id="captcha-question" style="font-size:1.2rem; margin-bottom:1rem;"></div>
+                <input id="captcha-answer" type="text" style="padding:0.5rem; border-radius:0.5rem; border:1px solid var(--border-color); color: var(--primary-text); width:80%; margin-bottom:1rem;" autocomplete="off" />
+                <div>
+                <button id="captcha-submit" style="background: var(--accent-color); color: #fff; border:none; border-radius:0.5rem; padding:0.5rem 1.5rem; font-weight:bold; cursor:pointer;">Submit</button>
+                </div>
+                <div id="captcha-error" style="color:red; margin-top:0.5rem; min-height:1.5em;"></div>
+            </div>
+            `;
+            document.body.appendChild(captchaModal);
+        } else {
+            captchaModal.style.display = 'block';
+        }
+        // Detect unknown browsers (simple check)
+        const knownBrowsers = [
+            /chrome/i, /firefox/i, /safari/i, /edg/i, /opera/i, /opr\//i, /crios/i, /fxios/i, /samsungbrowser/i, /ucbrowser/i, /brave/i
+        ];
+        const ua = navigator.userAgent;
+        const isKnown = knownBrowsers.some(rx => rx.test(ua));
+        if (!isKnown) {
+            captchaModal.querySelector('#captcha-question').textContent = "Please complete this CAPTCHA to continue.";
+        }
+        // Generate simple math question
+        const a = Math.floor(Math.random() * 10) + 1;
+        const b = Math.floor(Math.random() * 10) + 1;
+        const op = ['+', '-', '*'][Math.floor(Math.random() * 3)];
+        let answer;
+        let question;
+        if (op === '+') {
+            answer = a + b;
+            question = `What is ${a} + ${b}?`;
+        } else if (op === '-') {
+            answer = a - b;
+            question = `What is ${a} - ${b}?`;
+        } else {
+            answer = a * b;
+            question = `What is ${a} × ${b}?`;
+        }
+        captchaModal.querySelector('#captcha-question').textContent = question;
+        captchaModal.querySelector('#captcha-answer').value = '';
+        captchaModal.querySelector('#captcha-error').textContent = '';
+
+        // Focus input
+        setTimeout(() => captchaModal.querySelector('#captcha-answer').focus(), 100);
+
+        // Handler
+        function submitHandler() {
+            const userAnswer = captchaModal.querySelector('#captcha-answer').value.trim();
+            if (parseInt(userAnswer, 10) === answer) {
+            captchaModal.style.display = 'none';
+            window._weatherRateLimit.captchaRequired = false;
+            resolve();
+            } else {
+            captchaModal.querySelector('#captcha-error').textContent = 'Incorrect, try again!';
+            captchaModal.querySelector('#captcha-answer').value = '';
+            captchaModal.querySelector('#captcha-answer').focus();
+            }
+        }
+        captchaModal.querySelector('#captcha-submit').onclick = submitHandler;
+        captchaModal.querySelector('#captcha-answer').onkeydown = (e) => {
+            if (e.key === 'Enter') submitHandler();
+        };
+        });
+    }
         try {
             const [forecastResponse, archiveResponse] = await Promise.all([
                 fetch(forecastApiUrl),
@@ -823,7 +933,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         detailsContainer.innerHTML = details.map(d => `
-            <div class="bg-[var(--primary-bg)] p-4 rounded-lg shadow-sm border border-[var(--border-color)]">
+            <div class="liquid-glass p-4 shadow-sm border border-[var(--border-color)]">
                 <h3 class="text-sm text-[var(--secondary-text)] mb-2 flex items-center gap-2">
                     <span>${d.icon}</span>
                     <span data-translate="${d.label}">${translate(d.label)}</span>
@@ -909,28 +1019,34 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         dom.daylightContainer.innerHTML += daylightInfo;
 
+        // Group sunrise/sunset times by month in UTC to avoid DST confusion
         const monthlyData = {};
         archive.daily.time.forEach((time, index) => {
-            const date = new Date(time + 'T00:00:00'); // Ensure it's parsed as local time
-            const month = date.getMonth();
+            const date = new Date(time + 'T00:00:00Z'); // Parse as UTC
+            const month = date.getUTCMonth();
             if (!monthlyData[month]) {
                 monthlyData[month] = { sunrise: [], sunset: [] };
             }
+            // Parse sunrise/sunset as UTC
             monthlyData[month].sunrise.push(new Date(archive.daily.sunrise[index]).getTime());
             monthlyData[month].sunset.push(new Date(archive.daily.sunset[index]).getTime());
         });
 
         const monthlyHtml = Array.from({length: 12}, (_, i) => {
-            const monthName = new Date(null, i, 1).toLocaleDateString(state.settings.language, {month: 'short'});
+            const monthName = new Date(Date.UTC(2000, i, 1)).toLocaleDateString(state.settings.language, {month: 'short'});
             if (!monthlyData[i]) return '';
-            const avgSunrise = new Date(monthlyData[i].sunrise.reduce((a, b) => a + b, 0) / monthlyData[i].sunrise.length);
-            const avgSunset = new Date(monthlyData[i].sunset.reduce((a, b) => a + b, 0) / monthlyData[i].sunset.length);
+            // Calculate average in UTC, then convert to local time for display
+            const avgSunriseUTC = new Date(monthlyData[i].sunrise.reduce((a, b) => a + b, 0) / monthlyData[i].sunrise.length);
+            const avgSunsetUTC = new Date(monthlyData[i].sunset.reduce((a, b) => a + b, 0) / monthlyData[i].sunset.length);
+            // Convert UTC to local time string for display
+            const avgSunriseLocal = new Date(avgSunriseUTC.getTime() + (new Date().getTimezoneOffset() * -60000));
+            const avgSunsetLocal = new Date(avgSunsetUTC.getTime() + (new Date().getTimezoneOffset() * -60000));
             return `
                 <div class="flex justify-between items-center text-sm py-2 border-b border-[var(--border-color)]">
                     <span class="font-semibold">${monthName}</span>
                     <div class="flex gap-4 text-[var(--secondary-text)]">
-                        <span>🌅 ${avgSunrise.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                        <span>🌇 ${avgSunset.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        <span>🌅 ${avgSunriseLocal.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        <span>🌇 ${avgSunsetLocal.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                     </div>
                 </div>
             `;
@@ -1236,7 +1352,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
-        const footerHTML = `<div id="gameryt-weather-embed-footer" style="text-align: center; font-size: 12px; color: #888; padding-top: 12px; border-top: 1px solid #eee; margin-top: 12px;">Weather data by Open Meteo, Embedded in GAMERYT weather</div>`;
+        const footerHTML = `<div id="gameryt-weather-embed-footer" style="text-align: center; font-size: 12px; color: #888; padding-top: 12px; border-top: 1px solid #eee; margin-top: 12px;">Weather data by Open Meteo, Embedded in Munetios weather</div>`;
 
         const protectionScript = `
             <script>
@@ -1320,7 +1436,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const embedContent = generateEmbedHTML(state.currentLocation, state.currentWeatherData);
         dom.embedPreviewIframe.srcdoc = embedContent;
         
-        const iframeCode = `<iframe srcdoc='${embedContent.replace(/'/g, '&apos;')}' style="width: 100%; height: 400px; border: 1px solid #ccc; border-radius: 8px;" title="GAMERYT Weather Embed"></iframe>`;
+        const iframeCode = `<iframe srcdoc='${embedContent.replace(/'/g, '&apos;')}' style="width: 100%; height: 400px; border: 1px solid #ccc; border-radius: 8px;" title="Munetios Weather Embed"></iframe>`;
         dom.embedCodeTextarea.value = iframeCode;
         
         openModal(dom.embedModal);
