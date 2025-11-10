@@ -12,9 +12,7 @@
     document.addEventListener("DOMContentLoaded", function() {
       if (window.top !== window.self) {
         // Hide everything (html + body)
-        document.documentElement.style.display = "none";  
-        // Optional: redirect out of iframe
-        try { window.top.location = window.location; } catch (e) {}
+        document.documentElement.style.display = "none"; 
       }
     });
   </script>
